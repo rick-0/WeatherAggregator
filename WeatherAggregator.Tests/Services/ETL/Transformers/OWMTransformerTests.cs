@@ -55,6 +55,7 @@ public class OWMTransformerTests
     {
         var logger = Substitute.For<ILogger<OWMTransformer>>();
 
+        // implicitly test mapper with these tests as mapper functionality is integral to transformer
         var config = new MapperConfiguration(c =>
         {
             c.AddProfile<ServiceMappingProfile>();

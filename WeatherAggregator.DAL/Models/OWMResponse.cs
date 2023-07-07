@@ -17,7 +17,7 @@ public record OWMLocation
 {
 
     [XmlElement(ElementName = "location")]
-    public OWMCoords Location { get; set; }
+    public OWMCoords Location { get; set; } = new OWMCoords();
 }
 
 [XmlRoot(ElementName = "location")]

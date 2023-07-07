@@ -1,37 +1,51 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using WeatherAggregator.Configuration.Enums;
 using WeatherAggregator.DAL.Models;
 using WeatherAggregator.DAL.Queries;
-using WeatherAggregator.Services.ETL.Dto;
+using WeatherAggregator.Services.Dto;
 
 namespace WeatherAggregator.Services.ETL.Transformers
 {
-    public class WeatherapiTransformer : BaseApiTransformer<WeatherapiResponse>
+    public class WeatherapiTransformer : IApiTransformer<DailyForecastDto>
     {
-        public WeatherapiTransformer(IMapper mapper, IWeatherQuery<WeatherapiResponse> weatherQuery) : base(mapper, weatherQuery)
+        private readonly ILogger<WeatherapiTransformer> _logger;
+        protected readonly IMapper _mapper;
+        protected readonly IWeatherQuery<WeatherapiResponse> _weatherQuery;
+
+        public WeatherapiTransformer(
+            ILogger<WeatherapiTransformer> logger, 
+            IMapper mapper,
+            IWeatherQuery<WeatherapiResponse> weatherQuery)
         {
+            _logger = logger;
+            _mapper = mapper;
+            _weatherQuery = weatherQuery;
         }
 
-        public override async Task<(WeatherProviderType WeatherProviderType, ICollection<DailyForecastHourDto> ForecastDto)> GetDailyWeatherForecast(decimal latitude, decimal longitude)
+        public async Task<(WeatherProviderType WeatherProviderType, DailyForecastDto ForecastDto)>
+            GetDailyWeatherForecast(decimal latitude, decimal longitude, int days)
         {
             try
             {
-                var results = await _weatherQuery.GetDailyWeatherForecast(latitude, longitude);
+                var results = await _weatherQuery.GetDailyWeatherForecast(latitude, longitude, days);
 
                 var mappedResults = results.Forecast.ForecastDay.SelectMany(x => _mapper.Map<ICollection<DailyForecastHourDto>>(x.Hour)).ToList();
 
-                return (GetWeatherProviderType(), mappedResults);
+                var dailyForecast = new DailyForecastDto
+                {
+                    Latitude = results.Location.Latitude,
+                    Longitude = results.Location.Longitude,
+                    HourlyForecast = mappedResults
+                };
+
+                return (WeatherProviderType.Weatherapi, dailyForecast);
             }
             catch (Exception e)
             {
-                //todo log for later
-                return (GetWeatherProviderType(), new List<DailyForecastHourDto>());
+                _logger.LogError(e, $"{nameof(WeatherapiTransformer)} could not complete transformation of results");
+                return (WeatherProviderType.Weatherapi, new DailyForecastDto());
             }
-        }
-
-        protected override WeatherProviderType GetWeatherProviderType()
-        {
-            return WeatherProviderType.Weatherapi;
         }
     }
 }

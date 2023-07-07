@@ -1,20 +1,31 @@
-﻿using WeatherAggregator.Services.ETL;
-using WeatherAggregator.Services.ETL.Dto;
+﻿using FluentValidation;
+using WeatherAggregator.Services.Dto;
+using WeatherAggregator.Services.ETL;
 
 namespace WeatherAggregator.Services;
 
 public class WeatherService : IWeatherService
 {
-    private readonly IWeatherAggregator<DailyForecastHourDto> _dailyForecastWeatherAggregator;
+    private readonly IWeatherAggregator<DailyForecastDto> _dailyForecastWeatherAggregator;
+    private readonly IValidator<GetDailyForecastRequest> _getDailyForecastRequestValidator;
 
-    public WeatherService(IWeatherAggregator<DailyForecastHourDto> dailyForecastWeatherAggregator)
+    public WeatherService(
+        IWeatherAggregator<DailyForecastDto> dailyForecastWeatherAggregator,
+        IValidator<GetDailyForecastRequest> getDailyForecastRequestValidator)
     {
         _dailyForecastWeatherAggregator = dailyForecastWeatherAggregator;
+        _getDailyForecastRequestValidator = getDailyForecastRequestValidator;
     }
 
-    public async Task<ICollection<DailyForecastHourDto>> GetWeatherForecast(decimal latitude, decimal longitude)
+    public async Task<DailyForecastDto> GetDailyWeatherForecast(GetDailyForecastRequest getDailyForecastRequest)
     {
-        var result = await _dailyForecastWeatherAggregator.GetAggregatedWeather(latitude, longitude);
+        var valid = await _getDailyForecastRequestValidator.ValidateAsync(getDailyForecastRequest);
+        if (!valid.IsValid)
+        {
+            throw new InvalidOperationException(string.Join(", ", valid.Errors));
+        }
+
+        var result = await _dailyForecastWeatherAggregator.GetAggregatedWeather(getDailyForecastRequest.Latitude, getDailyForecastRequest.Longitude, getDailyForecastRequest.Days);
         return result;
     }
 }

@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using WeatherAggregator.Configuration;
 using WeatherAggregator.DAL.Models;
 using WeatherAggregator.DAL.Queries;
 using WeatherAggregator.Services;
+using WeatherAggregator.Services.Dto;
 using WeatherAggregator.Services.ETL;
-using WeatherAggregator.Services.ETL.Dto;
 using WeatherAggregator.Services.ETL.Transformers;
+using WeatherAggregator.Services.Validators;
 
 namespace WeatherAggregator.IoC
 {
@@ -20,11 +22,14 @@ namespace WeatherAggregator.IoC
             serviceCollection.AddSingleton<IWeatherQuery<WeatherapiResponse>, WeatherapiQuery>();
             serviceCollection.AddSingleton<IWeatherQuery<OWMResponse>, OWMQuery>();
 
-            serviceCollection.AddSingleton<IWeatherAggregator<DailyForecastHourDto>, DailyForecastWeatherAggregator>();
-            serviceCollection.AddSingleton<IApiTransformer, OWMTransformer>();
-            serviceCollection.AddSingleton<IApiTransformer, WeatherapiTransformer>();
+            serviceCollection.AddSingleton<IWeatherAggregator<DailyForecastDto>, DailyForecastWeatherAggregator>();
+            serviceCollection.AddSingleton<IApiTransformer<DailyForecastDto>, OWMTransformer>();
+            serviceCollection.AddSingleton<IApiTransformer<DailyForecastDto>, WeatherapiTransformer>();
 
             serviceCollection.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            serviceCollection.AddSingleton<IValidator<DailyForecastHourDto>, DailyForecastHourDtoValidator>();
+            serviceCollection.AddSingleton<IValidator<GetDailyForecastRequest>, GetDailyForecastRequestValidator>();
         }
     }
 }

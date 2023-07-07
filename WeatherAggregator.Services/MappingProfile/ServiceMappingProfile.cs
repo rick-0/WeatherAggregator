@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using WeatherAggregator.DAL.Models;
-using WeatherAggregator.Services.ETL.Dto;
+using WeatherAggregator.Services.Dto;
 
 namespace WeatherAggregator.Services.MappingProfile;
 

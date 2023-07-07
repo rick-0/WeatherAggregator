@@ -1,9 +1,7 @@
-﻿using WeatherAggregator.Services.ETL.Dto;
-
-namespace WeatherAggregator.Services.ETL
+﻿namespace WeatherAggregator.Services.ETL
 {
     public interface IWeatherAggregator<T>
     {
-        Task<ICollection<T>> GetAggregatedWeather(decimal latitude, decimal longitude);
+        Task<T> GetAggregatedWeather(decimal latitude, decimal longitude, int days);
     }
 }

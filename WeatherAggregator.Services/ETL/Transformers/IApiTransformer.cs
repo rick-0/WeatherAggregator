@@ -1,9 +1,8 @@
 ﻿using WeatherAggregator.Configuration.Enums;
-using WeatherAggregator.Services.ETL.Dto;
 
 namespace WeatherAggregator.Services.ETL.Transformers;
 
-public interface IApiTransformer
+public interface IApiTransformer<T>
 {
-    Task<(WeatherProviderType WeatherProviderType, ICollection<DailyForecastHourDto> ForecastDto)> GetDailyWeatherForecast(decimal latitude, decimal longitude);
+    Task<(WeatherProviderType WeatherProviderType, T ForecastDto)> GetDailyWeatherForecast(decimal latitude, decimal longitude, int days);
 }

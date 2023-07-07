@@ -4,5 +4,5 @@ namespace WeatherAggregator.Configuration;
 
 public interface IAppConfiguration
 {
-    ApiConfiguration ApiConfiguration { get; set; }
+    WeatherApiConfiguration ApiConfiguration { get; set; }
 }

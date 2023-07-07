@@ -18,6 +18,7 @@ var configuration = new ConfigurationBuilder()
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
 CorePackage.Register(builder.Services);
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
@@ -27,15 +28,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // todo add some friendly client error handling middleware => ProblemDetails
+}
 
 app.UseHttpsRedirection();
 
 WeatherController.RegisterController(app);
 
 app.Run();
-
-// todo remove
-//internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-//{
-//    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-//}

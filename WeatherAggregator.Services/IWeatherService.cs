@@ -1,8 +1,8 @@
-﻿using WeatherAggregator.Services.ETL.Dto;
+﻿using WeatherAggregator.Services.Dto;
 
 namespace WeatherAggregator.Services;
 
 public interface IWeatherService
 {
-    public Task<ICollection<DailyForecastHourDto>> GetWeatherForecast(decimal latitude, decimal longitude);
+    public Task<DailyForecastDto> GetDailyWeatherForecast(GetDailyForecastRequest getDailyForecastRequest);
 }

@@ -1,23 +1,34 @@
 ﻿using AutoMapper;
-using System.Drawing;
+using Microsoft.Extensions.Logging;
 using WeatherAggregator.Configuration.Enums;
 using WeatherAggregator.DAL.Models;
 using WeatherAggregator.DAL.Queries;
-using WeatherAggregator.Services.ETL.Dto;
+using WeatherAggregator.Services.Dto;
 
 namespace WeatherAggregator.Services.ETL.Transformers
 {
-    public class OWMTransformer : BaseApiTransformer<OWMResponse>
+    public class OWMTransformer : IApiTransformer<DailyForecastDto>
     {
-        public OWMTransformer(IMapper mapper, IWeatherQuery<OWMResponse> weatherQuery) : base(mapper, weatherQuery)
+        private readonly ILogger<OWMTransformer> _logger;
+        protected readonly IMapper _mapper;
+        protected readonly IWeatherQuery<OWMResponse> _weatherQuery;
+
+        public OWMTransformer(
+            ILogger<OWMTransformer> logger,
+            IMapper mapper,
+            IWeatherQuery<OWMResponse> weatherQuery)
         {
+            _logger = logger;
+            _mapper = mapper;
+            _weatherQuery = weatherQuery;
         }
 
-        public override async Task<(WeatherProviderType WeatherProviderType, ICollection<DailyForecastHourDto> ForecastDto)> GetDailyWeatherForecast(decimal latitude, decimal longitude)
+        public async Task<(WeatherProviderType WeatherProviderType, DailyForecastDto ForecastDto)> 
+            GetDailyWeatherForecast(decimal latitude, decimal longitude, int days)
         {
             try
             {
-                var results = await _weatherQuery.GetDailyWeatherForecast(latitude, longitude);
+                var results = await _weatherQuery.GetDailyWeatherForecast(latitude, longitude, days);
 
                 var mappedResults = results.Forecast.Time.Select(_mapper.Map<DailyForecastHourDto>).ToList();
 
@@ -29,23 +40,25 @@ namespace WeatherAggregator.Services.ETL.Transformers
                     newResults.AddRange(new []
                     {
                         result with { TimeUtc = result.TimeUtc }, 
-                        result with { TimeUtc = result.TimeUtc?.AddHours(1) }, 
-                        result with { TimeUtc = result.TimeUtc?.AddHours(2) }
+                        result with { TimeUtc = result.TimeUtc.AddHours(1) }, 
+                        result with { TimeUtc = result.TimeUtc.AddHours(2) }
                     });
                 }
 
-                return (GetWeatherProviderType(), newResults);
+                var dailyForecast = new DailyForecastDto
+                {
+                    Latitude = results.Location.Location.Latitude,
+                    Longitude = results.Location.Location.Longitude,
+                    HourlyForecast = newResults
+                };
+
+                return (WeatherProviderType.OWM, dailyForecast);
             }
             catch (Exception e)
             {
-                //todo log for later
-                return (GetWeatherProviderType(), new List<DailyForecastHourDto>());
+                _logger.LogError(e, $"{nameof(OWMTransformer)} could not complete transformation of results");
+                return (WeatherProviderType.OWM, new DailyForecastDto());
             }
-        }
-
-        protected override WeatherProviderType GetWeatherProviderType()
-        {
-            return WeatherProviderType.OWM;
         }
     }
 }

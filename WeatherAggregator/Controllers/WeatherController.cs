@@ -7,7 +7,7 @@ namespace WeatherAggregator.Controllers
     {
         public static void RegisterController(WebApplication app)
         {
-            app.MapGet("/weather/forecast/daily", async (IWeatherService weatherService, decimal? latitude, decimal? longitude) =>
+            app.MapGet("/weather/forecast/daily", async (IWeatherService weatherService, decimal? latitude, decimal? longitude, int? days) =>
             {
                 var request = new GetDailyForecastRequest
                 {
@@ -18,7 +18,16 @@ namespace WeatherAggregator.Controllers
                 return await weatherService.GetDailyWeatherForecast(request);
             })
             .WithName("GetDailyWeatherForecast")
-            .WithOpenApi();
+            .WithOpenApi(generatedOperation =>
+            {
+                var parameter = generatedOperation.Parameters[0];
+                parameter.Description = "Return weather data for this Latitude";
+                parameter = generatedOperation.Parameters[1];
+                parameter.Description = "Return weather data for this Longitude";
+                parameter = generatedOperation.Parameters[2];
+                parameter.Description = "NOT IMPLEMENTED - Number of days forecast data to return";
+                return generatedOperation;
+            });
         }
     }
 }

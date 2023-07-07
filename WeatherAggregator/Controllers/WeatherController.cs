@@ -21,9 +21,9 @@ namespace WeatherAggregator.Controllers
             .WithOpenApi(generatedOperation =>
             {
                 var parameter = generatedOperation.Parameters[0];
-                parameter.Description = "Return weather data for this Latitude";
+                parameter.Description = "Return weather data for this Latitude DEFAULT - Belfast";
                 parameter = generatedOperation.Parameters[1];
-                parameter.Description = "Return weather data for this Longitude";
+                parameter.Description = "Return weather data for this Longitude DEFAULT - Belfast";
                 parameter = generatedOperation.Parameters[2];
                 parameter.Description = "NOT IMPLEMENTED - Number of days forecast data to return";
                 return generatedOperation;
